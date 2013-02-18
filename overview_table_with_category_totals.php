@@ -36,8 +36,15 @@ require_once($CFG->dirroot . '/mod/quiz/report/overview/overview_table.php');
  */
 class quiz_overview_table_with_category_totals extends quiz_overview_table {
 
+    public function __construct($quiz, $context, $qmsubselect,
+            quiz_overview_options $options, $groupstudents, $students, $questions, $reporturl) {
+        global $DB;
+        $quiz->gradebycategory = $DB->get_field('quizaccess_gradebycategory', 'gradebycategory', array('quizid' => $quiz->id));
+        parent::__construct($quiz, $context, $qmsubselect, $options, $groupstudents, $students, $questions, $reporturl);
+    }
+
     protected function requires_latest_steps_loaded() {
-        return true;
+        return $this->options->slotmarks || $this->quiz->gradebycategory;
     }
 
     /**
@@ -82,25 +89,29 @@ class quiz_overview_table_with_category_totals extends quiz_overview_table {
     }
 
     function define_columns($columns) {
-        list(, $cats) =  $this->get_categories_for_qs();
-        foreach ($cats as $id => $cat) {
-            $columns[] = "cat{$id}";
-            $this->no_sorting("cat{$id}");
+        if ($this->quiz->gradebycategory) {
+            list(, $cats) =  $this->get_categories_for_qs();
+            foreach ($cats as $id => $cat) {
+                $columns[] = "cat{$id}";
+                $this->no_sorting("cat{$id}");
+            }
         }
         parent::define_columns($columns);
     }
 
     function define_headers($headers) {
-        list(, $cats) =  $this->get_categories_for_qs();
-        foreach ($cats as $id => $cat) {
-            $header = $cat;
-            if (!$this->is_downloading()) {
-                $header .= '<br />';
-            } else {
-                $header .= ' ';
+        if ($this->quiz->gradebycategory) {
+            list(, $cats) =  $this->get_categories_for_qs();
+            foreach ($cats as $id => $cat) {
+                $header = $cat;
+                if (!$this->is_downloading()) {
+                    $header .= '<br />';
+                } else {
+                    $header .= ' ';
+                }
+                $header .= '/ ' . quiz_format_grade($this->quiz, $this->quiz->grade);
+                $headers[] = $header;
             }
-            $header .= '/ ' . quiz_format_grade($this->quiz, $this->quiz->grade);
-            $headers[] = $header;
         }
         parent::define_headers($headers);
 
