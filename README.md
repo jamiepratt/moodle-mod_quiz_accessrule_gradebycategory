@@ -1,8 +1,36 @@
 A plug in to add a setting to quizzes to allow the display of grades by question category
 =========================================================================================
 
-If enabled for a quiz then the quiz will display grades by category in the 'Grades' report and in the student view of the attempt
- summary.
+Operation
+---------
+
+This plug in will introduce :
+
+### 1. a new quiz setting 'Show grade by question category' in the admin menu (on the site admin -> plug ins -> activity
+module->quiz
+ page). Here you can set the default for all new quizzes, whether to show grades by question category or not. This will be the
+ default for all new quizzes you create.
+### 2. a setting in the quiz settings at the bottom of the display section 'Show grade by question category'.
+If you have just
+installed this plug in then all existing quizzes will default to this setting being off.
+### 3. extra average columns for each question category
+
+These extra columns are :
+* in downloadable teacher's 'Grades' (overview) report
+* and student attempts summary table
+
+They are shown if the setting for the quiz is on.
+
+The columns show the percent of marks achieved for each question category in the quiz. For the purposes of calculating this
+percentage grade the ammount of marks for each question in the quiz is ignored ie. you
+ can assign in a quiz 2 marks to one question and 5 to another but this will not affect our average calculation. For each
+ question the weight is equal ie. the maximum grade for each question is :
+** normally 100%
+** but a student might achieve a partially correct results somewhere between 0 and 100%
+** Or in Certainty Based Marking a student might be awarded 200 % for a correct
+answer or a negative grade for example.
+
+And we calculate the average of this unweighted grade for all questions in a category.
 
 We have made this a quiz access rule plug in as this was the only plug in that would allow us to add settings to the quiz form.
 
