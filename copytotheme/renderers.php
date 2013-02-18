@@ -18,9 +18,10 @@
 /**
  * Includes a renderer to override the default renderer for quiz view .
  *
- * @package   theme
+ * @package   quizaccess
  * @subpackage gradebycategory
- * @copyright
+ * @copyright 2013 Portsmouth University
+ * @author    Jamie Pratt (me@jamiep.org)
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

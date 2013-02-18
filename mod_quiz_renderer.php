@@ -15,14 +15,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-    /**
-     * A renderer to override the default renderer for quiz view table.
-     *
-     * @package   theme
-     * @subpackage gradebycategory
-     * @copyright
-     * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
-     */
+/**
+ * A renderer to override the default renderer for quiz view table.
+ *
+ * @package   quizaccess
+ * @subpackage gradebycategory
+ * @copyright 2013 Portsmouth University
+ * @author    Jamie Pratt (me@jamiep.org)
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 
 require_once($CFG->dirroot.'/mod/quiz/renderer.php');

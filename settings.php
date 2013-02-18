@@ -17,8 +17,10 @@
 /**
  * Administration settings definitions for the quizaccess_gradebycategory quiz module sub plugin.
  *
- * @package quizaccess_gradebycategory
- * @copyright  2013 Petr Skoda
+ * @package   quizaccess
+ * @subpackage gradebycategory
+ * @copyright 2013 Portsmouth University
+ * @author    Jamie Pratt (me@jamiep.org)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

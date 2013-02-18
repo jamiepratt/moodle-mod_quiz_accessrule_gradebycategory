@@ -17,8 +17,10 @@
 /**
  * Restore code for the quizaccess_gradebycategory plugin.
  *
- * @package   quizaccess_gradebycategory
- * @copyright 2010 onwards Eloy Lafuente (stronk7) {@link http://stronk7.com}
+ * @package   quizaccess
+ * @subpackage gradebycategory
+ * @copyright 2013 Portsmouth University
+ * @author    Jamie Pratt (me@jamiep.org)
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

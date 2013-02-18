@@ -17,8 +17,10 @@
 /**
  * This file defines the quiz grades table.
  *
- * @package   quiz_overview
- * @copyright 2013 Jamie Pratt
+ * @package   quizaccess
+ * @subpackage gradebycategory
+ * @copyright 2013 Portsmouth University
+ * @author    Jamie Pratt (me@jamiep.org)
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -31,7 +33,8 @@ require_once($CFG->dirroot . '/mod/quiz/report/overview/overview_table.php');
 /**
  * This is a table subclass for displaying the quiz grades report.
  *
- * @copyright 2008 Jamie Pratt
+ * @copyright 2013 Portsmouth University
+ * @author    Jamie Pratt (me@jamiep.org)
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class quiz_overview_table_with_category_totals extends quiz_overview_table {

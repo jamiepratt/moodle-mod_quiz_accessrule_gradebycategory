@@ -17,8 +17,10 @@
 /**
  * Implementaton of the quizaccess_gradebycategory plugin.
  *
- * @package   quizaccess_gradebycategory
- * @copyright 2011 The Open University
+ * @package   quizaccess
+ * @subpackage gradebycategory
+ * @copyright 2013 Portsmouth University
+ * @author    Jamie Pratt (me@jamiep.org)
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -31,7 +33,8 @@ require_once($CFG->dirroot . '/mod/quiz/accessrule/accessrulebase.php');
 /**
  * A rule requiring the student to promise not to cheat.
  *
- * @copyright  2011 The Open University
+ * @copyright 2013 Portsmouth University
+ * @author    Jamie Pratt (me@jamiep.org)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class quizaccess_gradebycategory extends quiz_access_rule_base {
