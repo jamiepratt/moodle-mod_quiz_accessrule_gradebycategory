@@ -112,7 +112,7 @@ class quiz_overview_table_with_category_totals extends quiz_overview_table {
                 } else {
                     $header .= ' ';
                 }
-                $header .= '/ ' . quiz_format_grade($this->quiz, $this->quiz->grade);
+                $header .= '/ ' . quiz_format_grade($this->quiz, 100);
                 $headers[] = $header;
             }
         }
@@ -139,7 +139,7 @@ class quiz_overview_table_with_category_totals extends quiz_overview_table {
                 $total += $lateststep->fraction;
             }
         }
-        return quiz_format_grade($this->quiz,  $total / $qcount * $this->quiz->grade);
+        return quiz_format_grade($this->quiz,  $total / $qcount * 100);
 
     }
 

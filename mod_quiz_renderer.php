@@ -118,7 +118,7 @@ class quizaccess_gradebycategory_mod_quiz_renderer extends mod_quiz_renderer {
 
         foreach (current($datainrows) as $catname => $unused) {
             $table->head[] = $catname. ' / ' .
-                quiz_format_grade($quiz, $quiz->grade);
+                quiz_format_grade($quiz, 100);
             $table->align[] = 'center';
             $table->size[] = '';
         }
@@ -181,7 +181,7 @@ class quizaccess_gradebycategory_mod_quiz_renderer extends mod_quiz_renderer {
             }
 
             foreach ($datainrows[$attemptobj->get_uniqueid()] as $cell) {
-                $row[] = quiz_format_grade($quiz,  $cell * $quiz->grade);
+                $row[] = quiz_format_grade($quiz,  $cell * 100);
             }
 
             if ($viewobj->canreviewmine) {
