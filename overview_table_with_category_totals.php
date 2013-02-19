@@ -28,7 +28,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/mod/quiz/report/overview/overview_table.php');
-
+require_once($CFG->dirroot . '/mod/quiz/accessrule/gradebycategory/gradebycatcalculator.php');
 
 /**
  * This is a table subclass for displaying the quiz grades report.
@@ -38,6 +38,11 @@ require_once($CFG->dirroot . '/mod/quiz/report/overview/overview_table.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class quiz_overview_table_with_category_totals extends quiz_overview_table {
+
+    /**
+     * @var quizaccess_gradebycategory_calculator
+     */
+    protected $catgrades;
 
     /**
      * @param object                $quiz
@@ -57,83 +62,47 @@ class quiz_overview_table_with_category_totals extends quiz_overview_table {
     }
 
     /**
-     * Load latest steps data if needed to show grades per question or per category.
-     * @return bool
-     */
-    protected function requires_latest_steps_loaded() {
-        return parent::requires_latest_steps_loaded() || $this->quiz->gradebycategory;
-    }
-
-
-    /**
-     * @var null|array with key question id and value category id
-     */
-    protected $categoriesforqs = null;
-    /**
-     * @var null|array with key category id and value name of category
-     */
-    protected $categories = null;
-
-    /**
-     * Data needed to put category grades in cells.
-     * @return array
-     */
-    protected function get_categories_for_qs() {
-        global $DB;
-        if ($this->categoriesforqs === null) {
-            $questionids = array_filter(explode(',', $this->quiz->questions));
-            list($questionidssql, $questionidsparams) = $DB->get_in_or_equal($questionids);
-            $qincatsql = "SELECT q.id as qid, cat.id AS catid, cat.name AS catname FROM {question_categories} cat, {question} q ".
-                "WHERE q.category = cat.id AND q.id $questionidssql";
-            $categoriesforqsrawrecs = $DB->get_records_sql($qincatsql, $questionidsparams);
-            $this->categoriesforqs = array();
-            $this->categories = array();
-            foreach ($categoriesforqsrawrecs as  $categoriesforqsrawrec) {
-                $this->categoriesforqs[$categoriesforqsrawrec->qid] = $categoriesforqsrawrec->catid;
-                $this->categories[$categoriesforqsrawrec->catid] = $categoriesforqsrawrec->catname;
-            }
-        }
-        return array($this->categoriesforqs, $this->categories);
-
-    }
-
-    /**
-     * Define columns is used to add identifiers for columns. These identifiers are later used to know what method to call to get
+     * 'columns' property is used to add identifiers for columns. These identifiers are later used to know what method to call to get
      * the data to put in the cells. In this case we will add "cat{$id}" where $id is the category id and the data for cells will
      * be fetched from other_cols.
      * @param array $columns
      */
-    function define_columns($columns) {
-        if ($this->quiz->gradebycategory) {
-            list(, $cats) =  $this->get_categories_for_qs();
-            foreach ($cats as $id => $cat) {
-                $columns[] = "cat{$id}";
-                $this->no_sorting("cat{$id}");
-            }
+    function add_extra_columns($catids) {
+        foreach ($catids as $id) {
+            $this->add_column("cat{$id}");
+            $this->no_sorting("cat{$id}");
         }
-        parent::define_columns($columns);
+    }
+
+    protected function add_column($column) {
+        $colnum = count($this->columns);
+
+        $this->columns[$column]         = $colnum;
+        $this->column_style[$column]    = array();
+        $this->column_class[$column]    = '';
+        $this->column_suppress[$column] = false;
+
     }
 
     /**
-     * Add some extra headings, the titles of the columns.
+     * Add the titles of the columns.
      * @param array $headers
      */
-    function define_headers($headers) {
-        if ($this->quiz->gradebycategory) {
-            list(, $cats) =  $this->get_categories_for_qs();
-            foreach ($cats as $id => $cat) {
-                $header = $cat;
-                if (!$this->is_downloading()) {
-                    $header .= '<br />';
-                } else {
-                    $header .= ' ';
-                }
-                $header .= '/ ' . quiz_format_grade($this->quiz, 100);
-                $headers[] = $header;
+    function add_extra_headers($catnames) {
+        foreach ($catnames as $catname) {
+            $header = $catname;
+            if (!$this->is_downloading()) {
+                $header .= '<br />';
+            } else {
+                $header .= ' ';
             }
+            $header .= '/ ' . quiz_format_grade($this->quiz, 100);
+            $this->add_header($header);
         }
-        parent::define_headers($headers);
+    }
 
+    protected function add_header($header) {
+        $this->headers[] = $header;
     }
 
     /**
@@ -148,17 +117,23 @@ class quiz_overview_table_with_category_totals extends quiz_overview_table {
         }
 
         $catid = $matches[1]; // The thing that matches the first sub pattern in the regular expression above.
-        $qcount = 0;
-        $total = 0;
-        list($catforqs, ) =  $this->get_categories_for_qs();
-        foreach ($this->lateststeps[$attempt->usageid] as $lateststep) {
-            if ($catforqs[$lateststep->questionid] == $catid) {
-                $qcount++;
-                $total += $lateststep->fraction;
-            }
-        }
-        return quiz_format_grade($this->quiz,  $total / $qcount * 100);
-
+        return $this->catgrades->grade_by_category($attempt->usageid, $catid);
     }
 
+    public function query_db($pagesize, $useinitialsbar = true) {
+        parent::query_db($pagesize, $useinitialsbar);
+        if ($this->quiz->gradebycategory) {
+            $this->catgrades = new quizaccess_gradebycategory_calculator($this->quiz);
+            // $this->lateststeps may or may not already have been loaded depending if the reoprt
+            // is set to show question grades.
+            if ($this->lateststeps === null) {
+                $this->catgrades->load_latest_steps($this->attempts);
+            } else {
+                $this->catgrades->set_latest_steps($this->lateststeps);
+            }
+            $cats = $this->catgrades->load_cat_data();
+            $this->add_extra_headers($cats);
+            $this->add_extra_columns(array_keys($cats));
+        }
+    }
 }

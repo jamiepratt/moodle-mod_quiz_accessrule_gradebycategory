@@ -1,6 +1,8 @@
 A plug in to add a setting to quizzes to allow the display of grades by question category
 =========================================================================================
 
+This quiz access rule was commissioned by Portsmouth University and created by Jamie Pratt.
+
 Operation
 ---------
 
@@ -16,6 +18,7 @@ installed this plug in then all existing quizzes will default to this setting be
 ### 3. extra average columns for each question category
 
 These extra columns are :
+
 * in downloadable teacher's 'Grades' (overview) report
 * and student attempts summary table
 
@@ -25,21 +28,26 @@ The columns show the percent of marks achieved for each question category in the
 percentage grade the ammount of marks for each question in the quiz is ignored ie. you
  can assign in a quiz 2 marks to one question and 5 to another but this will not affect our average calculation. For each
  question the weight is equal ie. the maximum grade for each question is :
-** normally 100%
-** but a student might achieve a partially correct results somewhere between 0 and 100%
-** Or in Certainty Based Marking a student might be awarded 200 % for a correct
+
+* normally 100%
+* but a student might achieve a partially correct results somewhere between 0 and 100%
+* Or in Certainty Based Marking a student might be awarded 200 % for a correct
+
 answer or a negative grade for example.
 
 And we calculate the average of this unweighted grade for all questions in a category.
 
+After the grade in brackets you will see a count of the number of questions attempted by the student in that category for that
+attempt. It can be that for example when you have random questions in a quiz selecting from sub categories that the number of
+questions per category can vary between attempts.
+
 We have made this a quiz access rule plug in as this was the only plug in that would allow us to add settings to the quiz form.
 
-This quiz access rule was created by Jamie Pratt.
 
 Compatability
 -------------
 
-It can be used with versions 2.3 of Moodle, or later.
+It can be used with versions 2.3 of Moodle, or later. The same code is compatible with all versions of Moodle.
 
 Installation
 ------------
