@@ -8,13 +8,16 @@ Operation
 
 This plug in will introduce :
 
-### 1. a new quiz setting 'Show grade by question category' in the admin menu (on the site admin -> plug ins -> activity
-module->quiz
- page). Here you can set the default for all new quizzes, whether to show grades by question category or not. This will be the
- default for all new quizzes you create.
+### 1. a new quiz setting 'Show grade by question category'
+
+You can find the quiz settings page in the admin menu (on the site admin -> plug ins -> activity module->quiz page). Here you can
+set the default for all new quizzes, whether to show grades by question category or not. This will be the default for all new
+ quizzes you create.
+
 ### 2. a setting in the quiz settings at the bottom of the display section 'Show grade by question category'.
-If you have just
-installed this plug in then all existing quizzes will default to this setting being off.
+
+If you have just installed this plug in then all existing quizzes will default to this setting being off.
+
 ### 3. extra average columns for each question category
 
 These extra columns are :
@@ -64,9 +67,14 @@ folder to gradebycategory.
 
 ### Changes to core code
 
-A number of changes to core code are necessary for full functionality.
+A number of changes to core code are necessary for full functionality. You can apply the first two of these changes by applying
+the supplied patch. You can do this on Linux with the following command which you should run from the root of your moodle install :
 
-#### Adding default settings to admin menu
+    patch -p0 < mod/quiz/accessrule/gradebycategory/add_setting_to_admin_menu_and_modify_grades_report.patch
+
+You still have to manually [change your theme](#adding-category-total-columns-to-details-of-past-attempts-displayed-to-students-modify-your-theme).
+
+#### Manually adding default settings to admin menu
 
 Add this line :
 
@@ -74,9 +82,9 @@ Add this line :
 
 To the very end of file /mod/quiz/settings.php
 
-#### Adding category total columns to teacher's quiz overview ("Grades") report.
+#### Manually adding category total columns to teacher's quiz overview ("Grades") report.
 
-Around line 31 change :
+Around line 31 change the included file :
 
     require_once($CFG->dirroot . '/mod/quiz/report/overview/overview_table.php');
 
@@ -88,7 +96,7 @@ And at around line 71 change where it says :
 
     new quiz_overview_table
 
-to :
+change the class name to :
 
     new quiz_overview_table_with_category_totals
 
