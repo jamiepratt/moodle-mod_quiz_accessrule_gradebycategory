@@ -27,6 +27,9 @@
 
 require_once($CFG->dirroot.'/mod/quiz/accessrule/gradebycategory/mod_quiz_renderer.php');
 
+/**
+ * Name needs to be exactly as below for the renderer factory to find it. This 'extension' is just to rename the class.
+ */
 class theme_{put your theme name in here}_mod_quiz_renderer extends quizaccess_gradebycategory_mod_quiz_renderer  {
 
 }

@@ -39,6 +39,16 @@ require_once($CFG->dirroot . '/mod/quiz/report/overview/overview_table.php');
  */
 class quiz_overview_table_with_category_totals extends quiz_overview_table {
 
+    /**
+     * @param object                $quiz
+     * @param context               $context
+     * @param string                $qmsubselect
+     * @param quiz_overview_options $options
+     * @param array                 $groupstudents
+     * @param array                 $students
+     * @param array                 $questions
+     * @param moodle_url            $reporturl
+     */
     public function __construct($quiz, $context, $qmsubselect,
             quiz_overview_options $options, $groupstudents, $students, $questions, $reporturl) {
         global $DB;
@@ -46,22 +56,14 @@ class quiz_overview_table_with_category_totals extends quiz_overview_table {
         parent::__construct($quiz, $context, $qmsubselect, $options, $groupstudents, $students, $questions, $reporturl);
     }
 
-    protected function requires_latest_steps_loaded() {
-        return $this->options->slotmarks || $this->quiz->gradebycategory;
-    }
-
     /**
-     * Get all the questions in all the attempts being displayed that need regrading.
-     * @return array A two dimensional array $questionusageid => $slot => $regradeinfo.
+     * Load latest steps data if needed to show grades per question or per category.
+     * @return bool
      */
-    protected function get_regraded_questions() {
-        global $DB;
-
-        $qubaids = $this->get_qubaids_condition();
-        $regradedqs = $DB->get_records_select('quiz_overview_regrades',
-            'questionusageid ' . $qubaids->usage_id_in(), $qubaids->usage_id_in_params());
-        return quiz_report_index_by_keys($regradedqs, array('questionusageid', 'slot'));
+    protected function requires_latest_steps_loaded() {
+        return parent::requires_latest_steps_loaded() || $this->quiz->gradebycategory;
     }
+
 
     /**
      * @var null|array with key question id and value category id
@@ -72,6 +74,10 @@ class quiz_overview_table_with_category_totals extends quiz_overview_table {
      */
     protected $categories = null;
 
+    /**
+     * Data needed to put category grades in cells.
+     * @return array
+     */
     protected function get_categories_for_qs() {
         global $DB;
         if ($this->categoriesforqs === null) {
@@ -91,6 +97,12 @@ class quiz_overview_table_with_category_totals extends quiz_overview_table {
 
     }
 
+    /**
+     * Define columns is used to add identifiers for columns. These identifiers are later used to know what method to call to get
+     * the data to put in the cells. In this case we will add "cat{$id}" where $id is the category id and the data for cells will
+     * be fetched from other_cols.
+     * @param array $columns
+     */
     function define_columns($columns) {
         if ($this->quiz->gradebycategory) {
             list(, $cats) =  $this->get_categories_for_qs();
@@ -102,6 +114,10 @@ class quiz_overview_table_with_category_totals extends quiz_overview_table {
         parent::define_columns($columns);
     }
 
+    /**
+     * Add some extra headings, the titles of the columns.
+     * @param array $headers
+     */
     function define_headers($headers) {
         if ($this->quiz->gradebycategory) {
             list(, $cats) =  $this->get_categories_for_qs();
@@ -120,16 +136,18 @@ class quiz_overview_table_with_category_totals extends quiz_overview_table {
 
     }
 
+    /**
+     * Return the column average or call the parent class to see if the parent class knows what do put in this cell.
+     * @param string $colname the column name defined in define_columns
+     * @param object $attempt attempt for this row
+     * @return null|string null if we don't know what to put in this column or a string.
+     */
     public function other_cols($colname, $attempt) {
         if (!preg_match('/^cat(\d+)$/', $colname, $matches)) {
             return parent::other_cols($colname, $attempt);
         }
-        if ($this->lateststeps === null) {
-            $qubaids = $this->get_qubaids_condition();
-            $this->lateststeps = $this->load_question_latest_steps($qubaids);
-        }
 
-        $catid = $matches[1];
+        $catid = $matches[1]; // The thing that matches the first sub pattern in the regular expression above.
         $qcount = 0;
         $total = 0;
         list($catforqs, ) =  $this->get_categories_for_qs();

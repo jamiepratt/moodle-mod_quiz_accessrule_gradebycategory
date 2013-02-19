@@ -39,55 +39,24 @@ class quizaccess_gradebycategory_mod_quiz_renderer extends mod_quiz_renderer {
      * @param mod_quiz_view_object $viewobj
      */
     public function view_table($quiz, $context, $viewobj) {
+        // Most of the following code is unfortunately a duplicate of the existing renderer. There was no way to reuse the existing
+        // code and add the extra columns we wanted so I had to duplicate it.
+        // New parts of the code are marked with a comment // Grade by category code start. and // Grade by category code end.
         global $DB;
+        // Grade by category code start.
+        // If gradebycategory setting is not on then just use the existing renderer.
         if (!$quiz->gradebycategory) {
             return parent::view_table($quiz, $context, $viewobj);
         }
-
+        // Grade by category code end.
         if (!$viewobj->attempts) {
             return '';
         }
 
-        $qubaids = array();
-        foreach ($viewobj->attempts as $attempt) {
-            $qubaids[] = $attempt->uniqueid;
-        }
-
-        $dm = new question_engine_data_mapper();
-        $qubaidcondition = new qubaid_list($qubaids);
-        $slots = array_filter(explode(',', $attempt->layout));
-        $lateststeps = $dm->load_questions_usages_latest_steps($qubaidcondition, $slots);
-
-        $questionids = array_filter(explode(',', $quiz->questions));
-        list($questionidssql, $questionidsparams) = $DB->get_in_or_equal($questionids);
-        $qincatsql = "SELECT q.id as qid, cat.id AS catid, cat.name AS catname FROM {question_categories} cat, {question} q ".
-                    "WHERE q.category = cat.id AND q.id $questionidssql";
-        $qincategories = $DB->get_records_sql($qincatsql, $questionidsparams);
-
-        $category = array();
-
-        foreach ($lateststeps as $lateststep) {
-            $qcat = $qincategories[$lateststep->questionid];
-            if (!isset($category[$lateststep->questionusageid][$qcat->catid])) {
-                $category[$lateststep->questionusageid][$qcat->catid] = new stdClass();
-                $category[$lateststep->questionusageid][$qcat->catid]->total = 0;
-                $category[$lateststep->questionusageid][$qcat->catid]->qcount = 0;
-                $category[$lateststep->questionusageid][$qcat->catid]->name = $qcat->catname;
-            }
-
-            $category[$lateststep->questionusageid][$qcat->catid]->total += $lateststep->fraction;
-            $category[$lateststep->questionusageid][$qcat->catid]->qcount ++;
-        }
-
-        $datainrows = array();
-        foreach ($category as $questionusageid => $usagecats) {
-            foreach ($usagecats as $usagecat) {
-                $datainrows[$questionusageid][$usagecat->name] = $usagecat->total / $usagecat->qcount;
-            }
-
-        }
-
-
+        // Grade by category code start.
+        list($categorynames, $averagesperattemptpercat) =
+                                            $this->helper_get_question_category_names_and_averages_for_attempts($quiz,$viewobj);
+        // Grade by category code end.
 
         // Prepare table header.
         $table = new html_table();
@@ -116,12 +85,16 @@ class quizaccess_gradebycategory_mod_quiz_renderer extends mod_quiz_renderer {
             $table->size[] = '';
         }
 
-        foreach (current($datainrows) as $catname => $unused) {
+        // Grade by category code start.
+        // Output column headings for category averages
+        foreach ($categorynames as $catname) {
             $table->head[] = $catname. ' / ' .
                 quiz_format_grade($quiz, 100);
             $table->align[] = 'center';
             $table->size[] = '';
         }
+        // Grade by category code end.
+
 
         if ($viewobj->canreviewmine) {
             $table->head[] = get_string('review', 'quiz');
@@ -159,7 +132,7 @@ class quizaccess_gradebycategory_mod_quiz_renderer extends mod_quiz_renderer {
                 }
             }
 
-            // Ouside the if because we may be showing feedback but not grades.
+            // Outside the if because we may be showing feedback but not grades.
             $attemptgrade = quiz_rescale_grade($attemptobj->get_sum_marks(), $quiz, false);
 
             if ($viewobj->gradecolumn) {
@@ -180,9 +153,14 @@ class quizaccess_gradebycategory_mod_quiz_renderer extends mod_quiz_renderer {
                 }
             }
 
-            foreach ($datainrows[$attemptobj->get_uniqueid()] as $cell) {
-                $row[] = quiz_format_grade($quiz,  $cell * 100);
+            // Grade by category code start.
+            // Output cell contents for category average.
+            foreach (array_keys($categorynames) as $catid) {
+                $unscaledavg = $averagesperattemptpercat[$attemptobj->get_uniqueid()][$catid];
+                $row[] = quiz_format_grade($quiz,  $unscaledavg * 100);
             }
+
+            // Grade by category code end.
 
             if ($viewobj->canreviewmine) {
                 $row[] = $viewobj->accessmanager->make_review_link($attemptobj->get_attempt(),
@@ -208,5 +186,64 @@ class quizaccess_gradebycategory_mod_quiz_renderer extends mod_quiz_renderer {
         $output .= $this->view_table_heading();
         $output .= html_writer::table($table);
         return $output;
+    }
+
+    /**
+     * Load data needed to add columns with grade per category.
+     * @param $quiz
+     * @param $viewobj
+     * @return array containing two arrays - an array of category names with keys category id and category averages with the first
+     * key being the unique attempt id and the second the category id.
+     */
+    protected function helper_get_question_category_names_and_averages_for_attempts($quiz, $viewobj) {
+        global $DB;
+
+        $qubaids = array();
+        foreach ($viewobj->attempts as $attempt) {
+            $qubaids[] = $attempt->uniqueid;
+        }
+
+        $dm = new question_engine_data_mapper();
+        $qubaidcondition = new qubaid_list($qubaids);
+        $slots = array_filter(explode(',', $attempt->layout));
+        $lateststeps = $dm->load_questions_usages_latest_steps($qubaidcondition, $slots);
+
+        // Split string of comma separated values into array and remove zeroes which indicate a page break.
+        $questionids = array_filter(explode(',', $quiz->questions));
+        list($questionidssql, $questionidsparams) = $DB->get_in_or_equal($questionids);
+        // Get all the ids of question categories and category names and contained questions in one query.
+        // (Because every sql query is very time consuming.)
+        $qincatsql = "SELECT q.id as qid, cat.id AS catid, cat.name AS catname FROM {question_categories} cat, {question} q ".
+            "WHERE q.category = cat.id AND q.id $questionidssql";
+        $qincategories = $DB->get_records_sql($qincatsql, $questionidsparams);
+
+        $categorydataforeachattempt = array();
+        $categorynames = array();
+
+        // Question grades are in the step table. Add up the grades for each category and count how many question in each category.
+        foreach ($lateststeps as $lateststep) {
+            $qcat = $qincategories[$lateststep->questionid];
+            if (!isset($categorydataforeachattempt[$lateststep->questionusageid][$qcat->catid])) {
+                $categorydataforeachattempt[$lateststep->questionusageid][$qcat->catid] = new stdClass();
+                $categorydataforeachattempt[$lateststep->questionusageid][$qcat->catid]->total = 0;
+                $categorydataforeachattempt[$lateststep->questionusageid][$qcat->catid]->qcount = 0;
+                $categorydataforeachattempt[$lateststep->questionusageid][$qcat->catid]->catid = $qcat->catid;
+                $categorynames[$qcat->catid] = $qcat->catname;
+            }
+
+            $categorydataforeachattempt[$lateststep->questionusageid][$qcat->catid]->total += $lateststep->fraction;
+            $categorydataforeachattempt[$lateststep->questionusageid][$qcat->catid]->qcount ++;
+        }
+
+        $averagesperattemptpercat = array();
+        foreach ($categorydataforeachattempt as $uniqueattemptid => $catsdataforattempt) {
+            foreach ($catsdataforattempt as $catdataforattempt) {
+                $averagesperattemptpercat[$uniqueattemptid][$catdataforattempt->catid] = $catdataforattempt->total /
+                    $catdataforattempt->qcount;
+            }
+
+        }
+
+        return array($categorynames, $averagesperattemptpercat);
     }
 }
