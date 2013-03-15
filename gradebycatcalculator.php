@@ -89,17 +89,19 @@ class quizaccess_gradebycategory_calculator {
 
     public function grade_by_category($uniqueattemptid, $catid) {
         $qcount = 0;
-        $total = 0;
+        $totalpossiblemark = 0;
+        $totalactualmark = 0;
         foreach ($this->lateststeps[$uniqueattemptid] as $lateststep) {
             if (isset($this->qidtocatidhash[$lateststep->questionid])) {
                 if ($this->qidtocatidhash[$lateststep->questionid] == $catid) {
+                    $totalpossiblemark += $lateststep->maxmark;
+                    $totalactualmark += ($lateststep->fraction * $lateststep->maxmark);
                     $qcount++;
-                    $total += $lateststep->fraction;
                 }
             }
         }
-        if ($qcount > 0) {
-            $grade = quiz_format_grade($this->quiz,  $total / $qcount * 100);
+        if ($totalpossiblemark > 0) {
+            $grade = quiz_format_grade($this->quiz,  ($totalactualmark / $totalpossiblemark) * 100);
         } else {
             $grade = '--';
         }
