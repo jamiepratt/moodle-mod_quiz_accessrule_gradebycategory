@@ -64,7 +64,9 @@ class quizaccess_gradebycategory_calculator {
         $questionids = array();
         foreach ($this->lateststeps as $attempt) {
             foreach ($attempt as $slot => $lateststep) {
-                $questionids[] = $lateststep->questionid;
+                if ($lateststep->maxmark != 0) {
+                    $questionids[] = $lateststep->questionid;
+                }
             }
         }
         return $questionids;
@@ -89,9 +91,11 @@ class quizaccess_gradebycategory_calculator {
         $qcount = 0;
         $total = 0;
         foreach ($this->lateststeps[$uniqueattemptid] as $lateststep) {
-            if ($this->qidtocatidhash[$lateststep->questionid] == $catid) {
-                $qcount++;
-                $total += $lateststep->fraction;
+            if (isset($this->qidtocatidhash[$lateststep->questionid])) {
+                if ($this->qidtocatidhash[$lateststep->questionid] == $catid) {
+                    $qcount++;
+                    $total += $lateststep->fraction;
+                }
             }
         }
         if ($qcount > 0) {
