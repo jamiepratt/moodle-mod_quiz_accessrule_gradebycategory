@@ -57,10 +57,10 @@ Installation
 
 To install using git, type (or copy and paste) these commands in the root of your Moodle install :
 
-    git clone git://github.com/jamiepratt/moodle-quizaccess_gradebycategory.git mod/quiz/accessrule/gradebycategory
+    git clone git://github.com/jamiepratt/moodle-mod_quiz_accessrule_gradebycategory.git mod/quiz/accessrule/gradebycategory
     echo '/mod/quiz/accessrule/gradebycategory/' >> .git/info/exclude
 
-Alternatively, download the zip from [this url](https://github.com/jamiepratt/moodle-quizaccess_gradebycategory/zipball/master)
+Alternatively, download the zip from [this url](https://github.com/jamiepratt/moodle-mod_quiz_accessrule_gradebycategory/archive/master.zip)
 unzip it into the mod/quiz/accessrule folder, and then rename the new
 folder to gradebycategory.
 
