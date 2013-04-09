@@ -27,18 +27,8 @@ These extra columns are :
 
 They are shown if the setting for the quiz is on.
 
-The columns show the percent of marks achieved for each question category in the quiz. For the purposes of calculating this
-percentage grade the ammount of marks for each question in the quiz is ignored ie. you
- can assign in a quiz 2 marks to one question and 5 to another but this will not affect our average calculation. For each
- question the weight is equal ie. the maximum grade for each question is :
-
-* normally 100%
-* but a student might achieve a partially correct results somewhere between 0 and 100%
-* Or in Certainty Based Marking a student might be awarded 200 % for a correct
-
-answer or a negative grade for example.
-
-And we calculate the average of this unweighted grade for all questions in a category.
+For each student attempt we report the percentage of the grade achieved for questions from each question category, so '100' means
+that the student achieved 100% of the (weighted) grade available for the questions attempted in that question category.
 
 After the grade in brackets you will see a count of the number of questions attempted by the student in that category for that
 attempt. It can be that for example when you have random questions in a quiz selecting from sub categories that the number of
